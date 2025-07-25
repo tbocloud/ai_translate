@@ -23,6 +23,20 @@ app_license = "mit"
 
 # Includes in <head>
 # ------------------
+# Include JS files globally
+app_include_js = [
+    "/assets/ai_translate/js/translate.js"
+]
+
+# Include CSS files (optional)
+app_include_css = [
+    # "/assets/ai_translate/css/translate.css"
+]
+
+# Include JS files for specific doctypes
+doctype_js = {
+    "Sales Invoice": "public/js/translate.js"
+}
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/ai_translate/css/ai_translate.css"
