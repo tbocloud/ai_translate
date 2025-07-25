@@ -87,7 +87,7 @@ The **AI Translation System** is a powerful ERPNext app that provides automatic 
 cd /path/to/frappe-bench
 
 # Option A: Install from repository (if published)
-bench get-app [https://github.com/your-repo/ai_translate.git](https://github.com/tbocloud/ai_translate.git)
+bench get-app [[https://github.com/your-repo/ai_translate.git](https://github.com/tbocloud/ai_translate.git)
 
 # Install to your site
 bench --site your-site-name install-app ai_translate
