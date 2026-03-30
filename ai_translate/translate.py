@@ -15,7 +15,7 @@ def ai_translate_text(text, target_language="ar", source_language="en", ai_provi
     """
     Natural AI translation with robust error handling
     """
-    
+
     if not text or not text.strip():
         return {
             "success": False,
@@ -23,16 +23,16 @@ def ai_translate_text(text, target_language="ar", source_language="en", ai_provi
             "translated_text": "",
             "ai_provider": ai_provider
         }
-    
+
     try:
         start_time = datetime.now()
         result = None
-        
+
         # Clean input text
         text = text.strip()
         if len(text) > 5000:  # Limit text length
             text = text[:5000] + "..."
-        
+
         # Try the specified provider first
         if ai_provider == "groq":
             result = translate_with_groq_natural(text, target_language, source_language)
@@ -47,10 +47,10 @@ def ai_translate_text(text, target_language="ar", source_language="en", ai_provi
         else:
             # Auto-select best available provider
             result = translate_with_auto_provider(text, target_language, source_language)
-        
+
         if result and result.get('translated_text'):
             processing_time = (datetime.now() - start_time).total_seconds()
-            
+
             return {
                 "success": True,
                 "translated_text": result['translated_text'],
@@ -70,15 +70,15 @@ def ai_translate_text(text, target_language="ar", source_language="en", ai_provi
                 "translated_text": "",
                 "ai_provider": ai_provider
             }
-            
+
     except Exception as e:
         logger.error(f"AI Translation error with {ai_provider}: {str(e)}")
-        
+
         # Try fallback providers
         fallback_providers = ['groq', 'deepseek', 'openai']
         if ai_provider in fallback_providers:
             fallback_providers.remove(ai_provider)
-        
+
         for fallback in fallback_providers:
             try:
                 if has_api_key_configured(fallback):
@@ -89,7 +89,7 @@ def ai_translate_text(text, target_language="ar", source_language="en", ai_provi
                         fallback_result = translate_with_deepseek_natural(text, target_language, source_language)
                     elif fallback == 'openai':
                         fallback_result = translate_with_openai_natural(text, target_language, source_language)
-                    
+
                     if fallback_result and fallback_result.get('translated_text'):
                         return {
                             "success": True,
@@ -104,7 +104,7 @@ def ai_translate_text(text, target_language="ar", source_language="en", ai_provi
             except Exception as fallback_error:
                 logger.warning(f"Fallback provider {fallback} also failed: {str(fallback_error)}")
                 continue
-            
+
         return {
             "success": False,
             "error": f"All AI providers failed. Primary error: {str(e)}",
@@ -120,18 +120,18 @@ def translate_with_groq_natural(text, target_lang, source_lang):
     lang_names = get_language_names()
     target_name = lang_names.get(target_lang, target_lang)
     source_name = lang_names.get(source_lang, 'English')
-    
+
     api_key = get_groq_api_key()
     if not api_key:
         raise Exception("Groq API key not configured")
-    
+
     url = "https://api.groq.com/openai/v1/chat/completions"
-    
+
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
-    
+
     # Natural, context-aware prompt
     prompt = f"""You are a professional translator specializing in natural, fluent translations.
 
@@ -156,7 +156,7 @@ Translation:"""
                 "content": f"You are an expert translator. Translate text naturally to {target_name}, preserving meaning and business context."
             },
             {
-                "role": "user", 
+                "role": "user",
                 "content": prompt
             }
         ],
@@ -164,16 +164,16 @@ Translation:"""
         "max_tokens": 1024,
         "top_p": 0.9
     }
-    
+
     response = requests.post(url, headers=headers, json=payload, timeout=30)
-    
+
     if response.status_code == 200:
         result = response.json()
         translated_text = result['choices'][0]['message']['content'].strip()
-        
+
         # Clean up the response
         translated_text = clean_translation_response(translated_text)
-        
+
         if translated_text and len(translated_text) > 0:
             return {
                 'translated_text': translated_text,
@@ -196,18 +196,18 @@ def translate_with_openai_natural(text, target_lang, source_lang):
     lang_names = get_language_names()
     target_name = lang_names.get(target_lang, target_lang)
     source_name = lang_names.get(source_lang, 'English')
-    
+
     api_key = get_openai_api_key()
     if not api_key:
         raise Exception("OpenAI API key not configured")
-    
+
     url = "https://api.openai.com/v1/chat/completions"
-    
+
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
-    
+
     prompt = f"""Translate this {source_name} business text to natural, fluent {target_name}:
 
 "{text}"
@@ -222,21 +222,21 @@ Make it sound native and professional. Return only the translation."""
                 "content": f"You are a professional translator. Translate to natural {target_name}."
             },
             {
-                "role": "user", 
+                "role": "user",
                 "content": prompt
             }
         ],
         "temperature": 0.3,
         "max_tokens": 1000
     }
-    
+
     response = requests.post(url, headers=headers, json=payload, timeout=30)
-    
+
     if response.status_code == 200:
         result = response.json()
         translated_text = result['choices'][0]['message']['content'].strip()
         translated_text = clean_translation_response(translated_text)
-        
+
         if translated_text:
             return {
                 'translated_text': translated_text,
@@ -255,19 +255,19 @@ def translate_with_claude_natural(text, target_lang, source_lang):
     """
     lang_names = get_language_names()
     target_name = lang_names.get(target_lang, target_lang)
-    
+
     api_key = get_claude_api_key()
     if not api_key:
         raise Exception("Claude API key not configured")
-    
+
     url = "https://api.anthropic.com/v1/messages"
-    
+
     headers = {
         "x-api-key": api_key,
         "Content-Type": "application/json",
         "anthropic-version": "2023-06-01"
     }
-    
+
     prompt = f"""Translate to natural {target_name}:
 
 "{text}"
@@ -285,14 +285,14 @@ Make it sound fluent and professional. Return only the translation."""
             }
         ]
     }
-    
+
     response = requests.post(url, headers=headers, json=payload, timeout=30)
-    
+
     if response.status_code == 200:
         result = response.json()
         translated_text = result['content'][0]['text'].strip()
         translated_text = clean_translation_response(translated_text)
-        
+
         if translated_text:
             return {
                 'translated_text': translated_text,
@@ -311,18 +311,18 @@ def translate_with_deepseek_natural(text, target_lang, source_lang):
     """
     lang_names = get_language_names()
     target_name = lang_names.get(target_lang, target_lang)
-    
+
     api_key = get_deepseek_api_key()
     if not api_key:
         raise Exception("DeepSeek API key not configured")
-    
+
     url = "https://api.deepseek.com/v1/chat/completions"
-    
+
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
-    
+
     prompt = f"""Translate to natural {target_name}:
 
 "{text}"
@@ -333,21 +333,21 @@ Make it sound fluent and professional."""
         "model": "deepseek-chat",
         "messages": [
             {
-                "role": "user", 
+                "role": "user",
                 "content": prompt
             }
         ],
         "temperature": 0.3,
         "max_tokens": 1000
     }
-    
+
     response = requests.post(url, headers=headers, json=payload, timeout=30)
-    
+
     if response.status_code == 200:
         result = response.json()
         translated_text = result['choices'][0]['message']['content'].strip()
         translated_text = clean_translation_response(translated_text)
-        
+
         if translated_text:
             return {
                 'translated_text': translated_text,
@@ -366,18 +366,18 @@ def translate_with_perplexity_natural(text, target_lang, source_lang):
     """
     lang_names = get_language_names()
     target_name = lang_names.get(target_lang, target_lang)
-    
+
     api_key = get_perplexity_api_key()
     if not api_key:
         raise Exception("Perplexity API key not configured")
-    
+
     url = "https://api.perplexity.ai/chat/completions"
-    
+
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
-    
+
     prompt = f"""Translate to natural {target_name}:
 
 "{text}"
@@ -388,21 +388,21 @@ Make it sound fluent and professional."""
         "model": "llama-3.1-sonar-large-128k-online",
         "messages": [
             {
-                "role": "user", 
+                "role": "user",
                 "content": prompt
             }
         ],
         "temperature": 0.3,
         "max_tokens": 1000
     }
-    
+
     response = requests.post(url, headers=headers, json=payload, timeout=30)
-    
+
     if response.status_code == 200:
         result = response.json()
         translated_text = result['choices'][0]['message']['content'].strip()
         translated_text = clean_translation_response(translated_text)
-        
+
         if translated_text:
             return {
                 'translated_text': translated_text,
@@ -426,7 +426,7 @@ def translate_with_auto_provider(text, target_lang, source_lang):
         ('claude', translate_with_claude_natural),
         ('perplexity', translate_with_perplexity_natural)
     ]
-    
+
     for provider_name, translate_func in providers:
         if has_api_key_configured(provider_name):
             try:
@@ -436,7 +436,7 @@ def translate_with_auto_provider(text, target_lang, source_lang):
             except Exception as e:
                 logger.warning(f"Provider {provider_name} failed: {str(e)}")
                 continue
-    
+
     raise Exception("All available AI providers failed")
 
 def clean_translation_response(text):
@@ -445,9 +445,9 @@ def clean_translation_response(text):
     """
     if not text:
         return ""
-    
+
     text = text.strip()
-    
+
     # Remove common AI response patterns
     patterns_to_remove = [
         r'^translation:\s*',
@@ -459,17 +459,17 @@ def clean_translation_response(text):
         r'^answer:\s*',
         r'^\w+:\s*',  # Remove "Arabic:" or similar prefixes
     ]
-    
+
     for pattern in patterns_to_remove:
         text = re.sub(pattern, '', text, flags=re.IGNORECASE)
-    
+
     # Remove quotes if the entire text is wrapped
     if (text.startswith('"') and text.endswith('"')) or (text.startswith("'") and text.endswith("'")):
         text = text[1:-1]
-    
+
     # Remove extra whitespace
     text = re.sub(r'\s+', ' ', text).strip()
-    
+
     return text
 
 def get_language_names():
@@ -478,7 +478,7 @@ def get_language_names():
     """
     return {
         "ar": "Arabic",
-        "es": "Spanish", 
+        "es": "Spanish",
         "fr": "French",
         "de": "German",
         "it": "Italian",
@@ -523,7 +523,7 @@ def has_api_key_configured(provider):
         'perplexity': get_perplexity_api_key,
         'deepseek': get_deepseek_api_key
     }
-    
+
     getter = key_getters.get(provider)
     if getter:
         key = getter()
@@ -537,11 +537,11 @@ def test_ai_translation():
     """
     test_text = "High-quality professional business solution"
     target_lang = "ar"
-    
+
     # Test all configured providers
     providers = ['groq', 'openai', 'claude', 'deepseek', 'perplexity']
     results = {}
-    
+
     for provider in providers:
         if has_api_key_configured(provider):
             try:
@@ -559,7 +559,7 @@ def test_ai_translation():
                 "error": "API key not configured",
                 "ai_provider": provider
             }
-    
+
     return {
         "test_text": test_text,
         "target_language": target_lang,
@@ -574,18 +574,18 @@ def test_ai_providers():
     """
     test_text = "High-quality professional business solution"
     target_lang = "ar"
-    
+
     # Test all providers
     providers = ['groq', 'openai', 'claude', 'deepseek', 'perplexity']
     results = {}
-    
+
     for provider in providers:
         if has_api_key_configured(provider):
             try:
                 start_time = datetime.now()
                 result = ai_translate_text(test_text, target_lang, "en", provider)
                 processing_time = (datetime.now() - start_time).total_seconds()
-                
+
                 if result.get('success'):
                     results[provider] = {
                         "status": "success",
@@ -601,7 +601,7 @@ def test_ai_providers():
                         "translated_text": "",
                         "processing_time": processing_time
                     }
-                    
+
             except Exception as e:
                 results[provider] = {
                     "status": "failed",
@@ -616,7 +616,7 @@ def test_ai_providers():
                 "translated_text": "",
                 "processing_time": 0
             }
-    
+
     return results
 
 @frappe.whitelist()
@@ -719,97 +719,101 @@ def get_available_ai_providers():
             'cost': 'Low'
         }
     }
-    
+
     return providers
 
 @frappe.whitelist()
 def bulk_ai_translate_items(items_data, target_language="ar", ai_provider="groq"):
-    """
-    Robust bulk translation with better error handling
-    """
-    
-    if isinstance(items_data, str):
-        items_data = json.loads(items_data)
-    
-    if not has_api_key_configured(ai_provider):
-        return {
-            'results': [],
-            'summary': {
-                'total_items': len(items_data),
-                'successful_translations': 0,
-                'failed_translations': len(items_data),
-                'error': f'AI provider {ai_provider} is not configured'
-            }
-        }
-    
-    results = []
-    successful_translations = 0
-    failed_translations = 0
-    total_processing_time = 0
-    
-    for item in items_data:
-        try:
-            item_code = item.get('item_code', '')
-            description = item.get('description', '')
-            
-            if not description or not description.strip():
-                results.append({
-                    'item_code': item_code,
-                    'success': False,
-                    'error': 'No description to translate',
-                    'translated_text': '',
-                    'ai_enhanced': False
-                })
-                failed_translations += 1
-                continue
-            
-            translation_result = ai_translate_text(
-                description.strip(), 
-                target_language, 
-                "en", 
-                ai_provider
-            )
-            
-            results.append({
-                'item_code': item_code,
-                'success': translation_result['success'],
-                'translated_text': translation_result.get('translated_text', ''),
-                'error': translation_result.get('error', ''),
-                'ai_enhanced': translation_result.get('ai_enhanced', False),
-                'processing_time': translation_result.get('processing_time', 0),
-                'confidence_score': translation_result.get('confidence_score', 0),
-                'model_used': translation_result.get('model_used', ''),
-                'ai_provider': translation_result.get('ai_provider', ai_provider)
-            })
-            
-            if translation_result['success']:
-                successful_translations += 1
-                total_processing_time += translation_result.get('processing_time', 0)
-            else:
-                failed_translations += 1
-                
-        except Exception as e:
-            results.append({
-                'item_code': item.get('item_code', ''),
-                'success': False,
-                'error': f"Translation error: {str(e)}",
-                'translated_text': '',
-                'ai_enhanced': False
-            })
-            failed_translations += 1
-    
-    return {
-        'results': results,
-        'summary': {
-            'total_items': len(items_data),
-            'successful_translations': successful_translations,
-            'failed_translations': failed_translations,
-            'ai_enhanced_count': successful_translations,
-            'average_processing_time': total_processing_time / max(successful_translations, 1),
-            'ai_provider': ai_provider,
-            'total_processing_time': total_processing_time
-        }
-    }
+	"""
+	Robust bulk translation with better error handling
+	"""
+
+	if isinstance(items_data, str):
+		items_data = json.loads(items_data)
+
+	if not has_api_key_configured(ai_provider):
+		return {
+			'results': [],
+			'summary': {
+				'total_items': len(items_data),
+				'successful_translations': 0,
+				'failed_translations': len(items_data),
+				'error': f'AI provider {ai_provider} is not configured'
+			}
+		}
+
+	results = []
+	successful_translations = 0
+	failed_translations = 0
+	total_processing_time = 0
+
+	for item in items_data:
+		try:
+			item_code = item.get('item_code', '')
+			description = item.get('description', '')
+
+			if not description or not description.strip():
+				results.append({
+					'item_code': item_code,
+					'success': False,
+					'error': 'No description to translate',
+					'translated_text': '',
+					'ai_enhanced': False
+				})
+				frappe.log_error(message="Translation Error No Description",title="Translation Error No Description " + item_code)
+
+				failed_translations += 1
+				continue
+
+			translation_result = ai_translate_text(
+				description.strip(),
+				target_language,
+				"en",
+				ai_provider
+			)
+
+			results.append({
+				'item_code': item_code,
+				'success': translation_result['success'],
+				'translated_text': translation_result.get('translated_text', ''),
+				'error': translation_result.get('error', ''),
+				'ai_enhanced': translation_result.get('ai_enhanced', False),
+				'processing_time': translation_result.get('processing_time', 0),
+				'confidence_score': translation_result.get('confidence_score', 0),
+				'model_used': translation_result.get('model_used', ''),
+				'ai_provider': translation_result.get('ai_provider', ai_provider)
+			})
+
+			if translation_result['success']:
+				successful_translations += 1
+			total_processing_time += translation_result.get('processing_time', 0)
+			else:
+				frappe.log_error(message=str(translation_result),title="Translation Error Not Success")
+				failed_translations += 1
+
+		except Exception as e:
+			results.append({
+				'item_code': item.get('item_code', ''),
+				'success': False,
+				'error': f"Translation error: {str(e)}",
+				'translated_text': '',
+				'ai_enhanced': False
+			})
+			frappe.log_error(message=str(str(e)), title="Translation Error Exception")
+			failed_translations += 1
+
+	return {
+		'results': results,
+		'summary': {
+			'total_items': len(items_data),
+			'successful_translations': successful_translations,
+			'failed_translations': failed_translations,
+			'ai_enhanced_count': successful_translations,
+			'average_processing_time': total_processing_time / max(successful_translations, 1),
+			'ai_provider': ai_provider,
+			'total_processing_time': total_processing_time
+		}
+	}
 
 # Backward compatibility
 @frappe.whitelist()
@@ -836,7 +840,7 @@ def create_translation_custom_fields():
                 "insert_after": "language"
             })
             custom_field.insert(ignore_permissions=True)
-        
+
         if not frappe.db.exists("Custom Field", {"dt": "Sales Invoice Item", "fieldname": "custom_translated_description"}):
             custom_field = frappe.get_doc({
                 "doctype": "Custom Field",
@@ -848,7 +852,7 @@ def create_translation_custom_fields():
                 "read_only": 1
             })
             custom_field.insert(ignore_permissions=True)
-        
+
         if not frappe.db.exists("Custom Field", {"dt": "Sales Invoice", "fieldname": "custom_ai_provider"}):
             custom_field = frappe.get_doc({
                 "doctype": "Custom Field",
@@ -861,12 +865,12 @@ def create_translation_custom_fields():
                 "insert_after": "custom_translation_language"
             })
             custom_field.insert(ignore_permissions=True)
-            
+
         frappe.db.commit()
         frappe.clear_cache()
-        
+
         return {"success": True, "message": "Custom fields created successfully"}
-        
+
     except Exception as e:
         frappe.db.rollback()
         return {"success": False, "error": str(e)}
@@ -891,18 +895,18 @@ def get_translation_stats():
     """
     try:
         # Count total translations
-        total_translations = frappe.db.count('Sales Invoice Item', 
+        total_translations = frappe.db.count('Sales Invoice Item',
             filters={'custom_translated_description': ['!=', '']})
-        
+
         # Count by provider (simplified)
         provider_stats = {
             'groq': 0,
-            'openai': 0, 
+            'openai': 0,
             'claude': 0,
             'deepseek': 0,
             'perplexity': 0
         }
-        
+
         # Get recent translation activity
         recent_activity = frappe.db.sql("""
             SELECT DATE(modified) as date, COUNT(*) as count
@@ -914,15 +918,15 @@ def get_translation_stats():
             ORDER BY date DESC
             LIMIT 30
         """, as_dict=True)
-        
+
         return {
             'total_translations': total_translations,
             'provider_stats': provider_stats,
             'recent_activity': recent_activity,
-            'configured_providers': [p for p in ['groq', 'openai', 'claude', 'deepseek', 'perplexity'] 
+            'configured_providers': [p for p in ['groq', 'openai', 'claude', 'deepseek', 'perplexity']
                                    if has_api_key_configured(p)]
         }
-        
+
     except Exception as e:
         return {
             'error': str(e),
@@ -939,7 +943,7 @@ def validate_api_key(provider, api_key):
     """
     try:
         test_text = "Hello world"
-        
+
         if provider == 'groq':
             result = test_groq_key(api_key, test_text)
         elif provider == 'openai':
@@ -952,9 +956,9 @@ def validate_api_key(provider, api_key):
             result = test_perplexity_key(api_key, test_text)
         else:
             return {'valid': False, 'error': 'Unknown provider'}
-            
+
         return {'valid': True, 'test_result': result}
-        
+
     except Exception as e:
         return {'valid': False, 'error': str(e)}
 
@@ -1072,13 +1076,13 @@ def export_translations():
             AND sii.custom_translated_description != ''
             ORDER BY sii.modified DESC
         """, as_dict=True)
-        
+
         return {
             'success': True,
             'data': translations,
             'count': len(translations)
         }
-        
+
     except Exception as e:
         return {'success': False, 'error': str(e)}
 
@@ -1090,12 +1094,12 @@ def cleanup_translation_logs():
     try:
         # Clean up logs older than 30 days
         thirty_days_ago = frappe.utils.add_days(frappe.utils.nowdate(), -30)
-        
+
         # If you implement a Translation Log doctype, clean it up here
         # frappe.db.delete('Translation Log', {'creation': ['<', thirty_days_ago]})
-        
+
         logger.info("Translation logs cleanup completed")
-        
+
     except Exception as e:
         logger.error(f"Translation logs cleanup failed: {str(e)}")
 
