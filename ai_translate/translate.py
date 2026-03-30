@@ -786,7 +786,7 @@ def bulk_ai_translate_items(items_data, target_language="ar", ai_provider="groq"
 
 			if translation_result['success']:
 				successful_translations += 1
-			total_processing_time += translation_result.get('processing_time', 0)
+				total_processing_time += translation_result.get('processing_time', 0)
 			else:
 				frappe.log_error(message=str(translation_result),title="Translation Error Not Success")
 				failed_translations += 1
