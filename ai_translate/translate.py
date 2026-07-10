@@ -852,7 +852,17 @@ def create_translation_custom_fields():
                 "read_only": 1
             })
             custom_field.insert(ignore_permissions=True)
-
+        if not frappe.db.exists("Custom Field", {"dt": "Sales Invoice", "fieldname": "custom_translated_in_words"}):
+            custom_field = frappe.get_doc({
+                "doctype": "Custom Field",
+                "dt": "Sales Invoice",
+                "label": "Translated In Words",
+                "fieldname": "custom_translated_in_words",
+                "fieldtype": "Data",
+                "insert_after": "in_words",
+                "read_only": 1
+            })
+            custom_field.insert(ignore_permissions=True)
         if not frappe.db.exists("Custom Field", {"dt": "Sales Invoice", "fieldname": "custom_ai_provider"}):
             custom_field = frappe.get_doc({
                 "doctype": "Custom Field",

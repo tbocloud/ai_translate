@@ -289,6 +289,25 @@ function perform_bulk_ai_translation(frm, items) {
                     }
                 }
                 
+                // Translate in_words if present
+                if (frm.doc.in_words) {
+                    frappe.call({
+                        method: 'ai_translate.translate.ai_translate_text',
+                        args: {
+                            text: frm.doc.in_words,
+                            target_language: language_code,
+                            source_language: 'en',
+                            ai_provider: ai_provider
+                        },
+                        callback: function(res) {
+                            if (res.message && res.message.success) {
+                                frappe.model.set_value(frm.doctype, frm.docname, 'custom_translated_in_words', res.message.translated_text);
+                                frm.refresh_field('custom_translated_in_words');
+                            }
+                        }
+                    });
+                }
+                
                 show_bulk_results(summary);
                 frm.refresh_fields();
             } else {
@@ -355,6 +374,25 @@ function perform_bulk_translation(frm, settings) {
                         frappe.model.set_value(item.doctype, item.name, 'custom_translated_description', 
                             result.translated_text);
                     }
+                }
+                
+                // Translate in_words if present
+                if (frm.doc.in_words) {
+                    frappe.call({
+                        method: 'ai_translate.translate.ai_translate_text',
+                        args: {
+                            text: frm.doc.in_words,
+                            target_language: language_code,
+                            source_language: 'en',
+                            ai_provider: settings.ai_provider
+                        },
+                        callback: function(res) {
+                            if (res.message && res.message.success) {
+                                frappe.model.set_value(frm.doctype, frm.docname, 'custom_translated_in_words', res.message.translated_text);
+                                frm.refresh_field('custom_translated_in_words');
+                            }
+                        }
+                    });
                 }
                 
                 show_bulk_results(summary);
@@ -597,6 +635,8 @@ function clear_all_translations(frm) {
                 var item = frm.doc.items[i];
                 frappe.model.set_value(item.doctype, item.name, 'custom_translated_description', '');
             }
+            
+            frappe.model.set_value(frm.doctype, frm.docname, 'custom_translated_in_words', '');
             
             frappe.show_alert({
                 message: 'All translations cleared successfully',
