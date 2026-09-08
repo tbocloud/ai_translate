@@ -149,7 +149,7 @@ Translation:"""
 
     # Updated to use current available models
     payload = {
-        "model": "llama-3.3-70b-versatile",  # Current production model (as of Oct 2025)
+        "model": "qwen/qwen3.8-27b",  # Current production model (as of Oct 2025)
         "messages": [
             {
                 "role": "system",
@@ -178,7 +178,7 @@ Translation:"""
             return {
                 'translated_text': translated_text,
                 'confidence': 0.95,
-                'model': 'llama-3.3-70b-versatile',
+                'model': 'qwen/qwen3.8-27b',
                 'provider': 'groq'
             }
         else:
@@ -275,7 +275,7 @@ def translate_with_claude_natural(text, target_lang, source_lang):
 Make it sound fluent and professional. Return only the translation."""
 
     payload = {
-        "model": "claude-3-haiku-20240307",
+        "model": "claude-haiku-4-5-20251001",
         "max_tokens": 1000,
         "temperature": 0.3,
         "messages": [
@@ -297,7 +297,7 @@ Make it sound fluent and professional. Return only the translation."""
             return {
                 'translated_text': translated_text,
                 'confidence': 0.97,
-                'model': 'claude-3-haiku',
+                'model': 'claude-haiku-4-5-20251001',
                 'provider': 'claude'
             }
         else:
@@ -631,7 +631,7 @@ def get_ai_setup_guide():
             'signup_url': 'https://console.groq.com',
             'api_key_url': 'https://console.groq.com/keys',
             'config_key': 'groq_api_key',
-            'model': 'llama-3.3-70b-versatile',
+            'model': 'qwen/qwen3.8-27b',
             'speed': 'Ultra Fast',
             'quality': 'Very Good'
         },
@@ -651,7 +651,7 @@ def get_ai_setup_guide():
             'signup_url': 'https://console.anthropic.com',
             'api_key_url': 'https://console.anthropic.com/settings/keys',
             'config_key': 'claude_api_key',
-            'model': 'claude-3-haiku',
+            'model': 'claude-haiku-4-5-20251001',
             'speed': 'Fast',
             'quality': 'Excellent'
         },
@@ -980,7 +980,7 @@ def test_groq_key(api_key, text):
         "Content-Type": "application/json"
     }
     payload = {
-        "model": "llama-3.3-70b-versatile",  # Current production model
+        "model": "qwen/qwen3.8-27b",  # Current production model
         "messages": [{"role": "user", "content": f"Translate to Arabic: {text}"}],
         "max_tokens": 50
     }
@@ -1011,7 +1011,7 @@ def test_claude_key(api_key, text):
         "anthropic-version": "2023-06-01"
     }
     payload = {
-        "model": "claude-3-haiku-20240307",
+        "model": "claude-haiku-4-5-20251001",
         "max_tokens": 50,
         "messages": [{"role": "user", "content": f"Translate to Arabic: {text}"}]
     }
